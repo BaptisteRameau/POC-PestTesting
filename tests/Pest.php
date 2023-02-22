@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\User;
+use App\Models\Account;
+use PHPUnit\Framework\ExpectationFailedException;
+use Illuminate\Support\Str;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -27,8 +32,16 @@ uses(
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
+expect()->extend('toBePhoneNumber', function () {
+    expect($this->value)->toBeString()->toStartWith('+');
+
+    if (strlen($this->value) < 6) {
+        throw new ExpectationFailedException('Phone numbers must be at least 6 characters.');
+    }
+
+    if (!is_numeric(Str::of($this->value)->after('+')->remove([' ', '-'])->__toString())) {
+        throw new ExpectationFailedException('Phone numbers must be numeric.');
+    }
 });
 
 /*
@@ -42,7 +55,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function login($user = null)
 {
-    // ..
+    return test()->actingAs($user ?? User::factory()->create(['account_id' => Account::create(['name' => 'Acme Corporation'])->id]));
 }
